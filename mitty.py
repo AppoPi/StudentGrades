@@ -65,7 +65,7 @@ class Mitty:
         output = ''
         for i in range(len(grades)):
             if i % 2 == 0:
-                output += grades[i] + ',' + grades[i+1] + '\n'
+                output += grades[i].replace(',', '') + ',' + grades[i+1] + '\n'
         
         self.save('grades', self.name, output)
             
@@ -88,11 +88,11 @@ class Mitty:
             soup = BeautifulSoup(self.driver.page_source, 'html5lib')
             
             for i in soup.find_all('th')[:7]:
-                output += str(filter(lambda x: x in printable, i.text)).strip() + ','
+                output += str(filter(lambda x: x in printable, i.text.replace(',', ''))).strip() + ','
             output += '\n'
             for i in soup.find('tbody').find_all('tr'):
                 if i.text != u'\n':
-                    for j in filter(lambda x: x in printable, i.text).strip().split('\n'):
+                    for j in filter(lambda x: x in printable, i.text.replace(',', '')).strip().split('\n'):
                         output += j + ','
                     output += '\n'
             output += '\n'
