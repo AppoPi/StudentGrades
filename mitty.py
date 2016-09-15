@@ -6,6 +6,7 @@ import string
 import os
 import time
 import re
+import pprint
 
 class Mitty:
     
@@ -79,34 +80,50 @@ class Mitty:
             
     def assignments(self):
         '''Get and record assignments information'''
-        self.breakpoint()
-        # soup = BeautifulSoup(self.driver.page_source, 'html5lib')
-        # class_URL = []
         
-        # table = soup.find('table', {'class': 'flexible boxaligncenter generaltable'})
-        # rows = table.find('tbody').find_all('tr')
-        
-        # for row in rows:
-            # if row.a:
-                    # class_URL.append(row.a['href'])
-        
-        # output = ''
-        # printable = set(string.printable)
-        # for index in range(0, len(class_URL) - 1):
-            # self.driver.get(class_URL[index])
-            # soup = BeautifulSoup(self.driver.page_source, 'html5lib')
+        self.driver.find_element_by_class_name('showGrade').click()
+        time.sleep(2)
+        output = ''
+        while(True):
+            output += self.driver.find_element_by_class_name('media-heading').text + '\n'
             
-            # for i in soup.find_all('th')[:7]:
-                # output += str(filter(lambda x: x in printable, i.text.replace(',', ''))).strip() + ','
-            # output += '\n'
-            # for i in soup.find('tbody').find_all('tr'):
-                # if i.text != u'\n':
-                    # for j in filter(lambda x: x in printable, i.text.replace(',', '')).strip().split('\n'):
-                        # output += j + ','
-                    # output += '\n'
-            # output += '\n'
-        
-        # self.save('assignments', self.name, output)
+            soup = BeautifulSoup(self.driver.page_source, 'html5lib')
+            tables = soup.find_all('table', {'class': 'table table-striped table-condensed table-mobile-stacked'})
+            # self.breakpoint()
+            tds = []
+            for t in tables:
+                rows = t.find_all('tr')
+                for d in rows:
+                    tds.append(d)
+            
+            count = 0
+                
+            for i in tds:
+                count = 0
+                for j in i:
+                    if count % 2 == 0:
+                        count += 1
+                        continue
+                    try:
+                        text = j.text.encode('ascii', 'replace')
+                        text = text.replace(',', '.')
+                        if '/' in text:
+                            output += '\'' + text + ','
+                        else:
+                            output += text + ','
+                    except:
+                        output += j.text[:-1].encode('ascii', 'replace') + ','
+                    
+                    count += 1
+                output += '\n'
+            output += '\n'
+            next = self.driver.find_element_by_xpath("//*[contains(text(), 'Next Course')]")
+            if 'disabled' not in next.get_attribute('class'):
+                next.click()
+            else:
+                break
+                
+        self.save('assignments', self.name, output)
     
     def save(self, prefix, name, content):
         '''Saves content to a file in csv format'''
