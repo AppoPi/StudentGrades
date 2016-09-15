@@ -63,13 +63,17 @@ class Powerschool:
         soup = BeautifulSoup(self.driver.page_source, 'html5lib')
         table = soup.find('table', {'class': 'grid'})
         rows = table.find('tbody').find_all('tr')
-        
+                
         class_URL = []
         for tr in rows:
             cols = tr.findAll('td')
-            if len(cols) >= 20:
-                for i in cols[13:18]:
-                    class_URL.append(self.URL + i.a['href'])
+            for i in cols:
+                try:
+                    if 'scores' in i.a['href']:
+                        class_URL.append(self.URL + i.a['href'])
+                except:
+                    pass
+        
         out = ''
         for i in class_URL:
             self.driver.get(i)
@@ -78,7 +82,12 @@ class Powerschool:
             for td in a.findAll('tr'):
                 items = td.text.split('\n')
                 for j in items:
-                    out += u''.join(j[10:]).encode('utf-8').strip().replace('\'', '').replace('\"', '') + ','
+                    string = u''.join(j[10:])
+                    if '/' not in string:
+                        out += string.encode('utf-8').strip().replace('\'', '').replace('\"', '') + ','
+                    else:
+                        out += "'" + string.encode('utf-8').strip().replace('\'', '').replace('\"', '') + ','
+                        
                 out += '\n'
         self.save('assignments', self.name, out)
         
@@ -101,4 +110,5 @@ if __name__ == "__main__":
     ''' Instantiate the class
         Add users here
         Powerschool([Name], [Username], [Password])'''
-    Powerschool('Matthew Burger', 'matthew.burger', '@Vcs7631')
+    # Powerschool('Matthew Burger', 'matthew.burger', '@Vcs7631')
+    Powerschool('Dominic Henderson', 'dominic.henderson', '@Vcs9447')
