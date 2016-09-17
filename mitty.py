@@ -28,14 +28,18 @@ class Mitty:
         namespace.update(frame.f_locals)
         code.interact(banner="-%s>>" % msg, local=namespace)
     
-    def __init__(self, name, username, password):
-        self.driver = webdriver.Firefox()
+    def getInfo(self, name, username, password):
         self.name = name.replace(' ','_')
         self.username = username
         self.password = password
         self.login()
         self.grades()
         self.assignments()
+        self.logout()
+        
+    def browser(self):
+        self.driver = webdriver.Firefox()
+        
         
     def login(self):
         '''Enter credentials and login'''
@@ -48,6 +52,15 @@ class Mitty:
         password.send_keys(self.password)
         
         self.driver.find_element_by_id('loginBtn').click()
+        
+    def logout(self):
+        # Log out and close browser
+        if 'student' in self.driver.current_url:
+            self.driver.find_element_by_id('account-nav').click()
+            self.driver.find_element_by_link_text('Sign Out').click()
+        else:
+            self.driver.find_element_by_xpath("//*[@id='account-nav']/span[2]").click()
+            self.driver.find_element_by_xpath("//*[@id='site-user-nav']/div/ul/li[3]/div[2]/ul/li[7]/a").click()
     
     def grades(self):
         '''Get and record grades information'''
@@ -60,9 +73,12 @@ class Mitty:
             self.driver.find_element_by_class_name('close').click()
         except:
             pass
-        
-        # Navigate to grades page
-        self.driver.find_element_by_id('children-subnav').click()
+            
+        try:
+            # Navigate to grades page
+            self.driver.find_element_by_id('children-subnav').click()
+        except:
+            pass
         
         time.sleep(3)
         source = self.driver.page_source
@@ -73,23 +89,28 @@ class Mitty:
         h3s = soup.find_all('h3')
         
         output = ''
-        for i in range(0, len(h3s), 2):
-            output += re.sub(',',  '', h3s[i].text) + ',' + h3s[i+1].text + '\n'
-        output = output.encode('utf8')
-        filename = self.save('grades', self.name, output)
+        for i, x in enumerate(h3s):
+            if i % 2 == 0:
+                output += x.text.strip().encode('utf-8') + ','
+            else:
+                output += x.text.strip().encode('utf-8') + '\n'
             
+        self.save('grades', self.name, output)
+        
     def assignments(self):
         '''Get and record assignments information'''
+        output = ''
+        if 'student' in self.driver.current_url:
+            self.driver.find_element_by_xpath("//*[contains(text(), 'Show')]").click()
         
         self.driver.find_element_by_class_name('showGrade').click()
-        time.sleep(2)
-        output = ''
+        
         while(True):
             output += self.driver.find_element_by_class_name('media-heading').text + '\n'
             
             soup = BeautifulSoup(self.driver.page_source, 'html5lib')
             tables = soup.find_all('table', {'class': 'table table-striped table-condensed table-mobile-stacked'})
-            # self.breakpoint()
+            
             tds = []
             for t in tables:
                 rows = t.find_all('tr')
@@ -121,8 +142,9 @@ class Mitty:
             if 'disabled' not in next.get_attribute('class'):
                 next.click()
             else:
+                self.driver.find_element_by_xpath("//*[contains(text(), 'Close')]").click()
                 break
-                
+            
         self.save('assignments', self.name, output)
     
     def save(self, prefix, name, content):
@@ -134,17 +156,18 @@ class Mitty:
         with open(name, 'w') as f:
             f.write(content)
         return name
-            
+        
     def __del__(self):
         '''Destructor'''
-        # Log out and close browser
-        # self.driver.find_element_by_id('action-menu-toggle-0').click()
-        # self.driver.find_element_by_id('actionmenuaction-6').click()
         self.driver.close()
-
-
+        
+        
 if __name__ == "__main__":
     ''' Instantiate the class
         Add users here
         Mitty([Name], [Username], [Password])'''
-    Mitty('Reese Myers' , 'MyersPa', 'Reesegrades')
+    # Now works for both student and parent logins
+    m = Mitty()
+    m.browser()
+    m.getInfo('Reese Myers' , 'MyersPa', 'Reesegrades')
+    m.getInfo('Kate Picone', 'kathrynpicone18', 'Ang41lik')

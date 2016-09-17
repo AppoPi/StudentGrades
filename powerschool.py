@@ -6,7 +6,7 @@ import string
 import os
 
 class Powerschool:
-
+    
     URL = 'https://powerschool.vcs.net/guardian/'
     
     def breakpoint(self,msg=""):
@@ -24,14 +24,18 @@ class Powerschool:
         namespace.update(frame.f_locals)
         code.interact(banner="-%s>>" % msg, local=namespace)
     
-    def __init__(self, name, username, password):
-        self.driver = webdriver.Firefox()
+    def getInfo(self, name, username, password):
+        # self.driver = webdriver.Firefox()
         self.name = name.replace(' ','_')
         self.username = username
         self.password = password
         self.login()
         self.grades()
         self.assignments()
+        self.logout()
+        
+    def browser(self):
+        self.driver = webdriver.Firefox()
         
     def login(self):
         '''Enter credentials and login'''
@@ -43,7 +47,10 @@ class Powerschool:
         password.send_keys(self.password)
         
         self.driver.find_element_by_id('btn-enter').click()
-
+        
+    def logout(self):
+        self.driver.find_element_by_id('btnLogout').click()
+    
     def grades(self):
         '''Get and record grades information'''
         # Parse HTML table
@@ -102,13 +109,14 @@ class Powerschool:
     
     def __del__(self):
         '''Destructor'''
-        # Log out and close browser
-        self.driver.find_element_by_id('btnLogout').click()
+        # Close browser
         self.driver.close()
-
+    
 if __name__ == "__main__":
+    ps = Powerschool()
+    ps.browser()
     ''' Instantiate the class
         Add users here
-        Powerschool([Name], [Username], [Password])'''
-    # Powerschool('Matthew Burger', 'matthew.burger', '@Vcs7631')
-    Powerschool('Dominic Henderson', 'dominic.henderson', '@Vcs9447')
+        ps.getInfo([Name], [Username], [Password])'''
+    ps.getInfo('Matthew Burger', 'matthew.burger', '@Vcs7631')
+    ps.getInfo('Dominic Henderson', 'dominic.henderson', '@Vcs9447')
