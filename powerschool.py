@@ -1,28 +1,11 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-from datetime import date, datetime
 from bs4 import BeautifulSoup
-import string
-import os
+import school
 
-class Powerschool:
-    
+class Powerschool(school.School):
+
     URL = 'https://powerschool.vcs.net/guardian/'
-    
-    def breakpoint(self,msg=""):
-        '''Stops execution of code bringing up python console and prints msg'''
-        import code, sys
-        
-        # Use exception trick to pick up the current frame
-        try:
-            raise None
-        except:
-            frame = sys.exc_info()[2].tb_frame.f_back
-        
-        # Evaluate commands in current namespace
-        namespace = frame.f_globals.copy()
-        namespace.update(frame.f_locals)
-        code.interact(banner="-%s>>" % msg, local=namespace)
     
     def getInfo(self, name, username, password):
         # self.driver = webdriver.Firefox()
@@ -62,7 +45,8 @@ class Powerschool:
                 if j != '\n':
                     output += j + ','
             output += '\n'
-            
+        
+        # Save to file
         self.save('grades', self.name, output) 
     
     def assignments(self):
@@ -70,7 +54,8 @@ class Powerschool:
         soup = BeautifulSoup(self.driver.page_source, 'html5lib')
         table = soup.find('table', {'class': 'grid'})
         rows = table.find('tbody').find_all('tr')
-                
+        
+        # Grab urls for each class
         class_URL = []
         for tr in rows:
             cols = tr.findAll('td')
@@ -81,6 +66,7 @@ class Powerschool:
                 except:
                     pass
         
+        # Navigate to and build output from each page
         out = ''
         for i in class_URL:
             self.driver.get(i)
@@ -96,6 +82,8 @@ class Powerschool:
                         out += "'" + string.encode('utf-8').strip().replace('\'', '').replace('\"', '') + ','
                         
                 out += '\n'
+        
+        # Save to file
         self.save('assignments', self.name, out)
         
     def save(self, prefix, name, content):
