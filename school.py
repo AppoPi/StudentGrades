@@ -3,7 +3,7 @@ import code
 import sys
 import os
 from datetime import date, datetime
-import pprint
+from pprint import pprint
 
 class School:
     def breakpoint(self,msg=""):

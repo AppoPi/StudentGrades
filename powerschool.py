@@ -85,15 +85,6 @@ class Powerschool(school.School):
         
         # Save to file
         self.save('assignments', self.name, out)
-        
-    def save(self, prefix, name, content):
-        '''Saves content to a file in csv format'''
-        if not os.path.isdir('output'):
-            os.makedirs('output')
-            
-        with open('output/' + prefix + '_' + name.replace(' ', '_')
-            + '_' + datetime.now().strftime('%Y_%m_%d') + '.csv', 'w') as f:
-            f.write(content)
     
     def __del__(self):
         '''Destructor'''
